@@ -1,82 +1,56 @@
 const axios = require('axios');
 const Utils = require('./Utils');
 const Auth = require('./Auth');
+const AlgorithmManager = require('./AlgorithmStarter');
+const DataHandler = require('./DataHandler');
 
 let url = 'https://www.ztm.lublin.eu/api/query';
 
-let auth =Auth.getAuth();
-
-let responseData;
+let auth = Auth.getAuth();
 
 module.exports = {
-    getBusstops: function () {
-        this.sendPostRequest({method: "busstops"})
+    getDataFromZTE(requestObjectWrapperFunctions){
+        let promises = this.createPromises(requestObjectWrapperFunctions);
+        this.getResponse(promises);
     },
 
-    getBusstop: function(idBusstop, idSchedule) {
-        this.sendPostRequest({
-            method: "busstop",
-            schedule_id: idSchedule,
-            busstop_no: idBusstop,
-        })
+    createPromises: function(requestParams){
+        return requestParams.map(
+            (requestParam) => {
+                let data = {
+                    auth: auth
+                };
+                Utils.copyPropsToAnotherObject(requestParam, data);
+                return axios({
+                    method: 'post',
+                    url: url,
+                    data: data,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+            }
+        )
     },
 
-    getLines: function() {
-        this.sendPostRequest({method: "lines"})
-    },
-
-    getLine: function(nrLine, idSchedule) {
-        this.sendPostRequest({
-            method: "line",
-            line_no: nrLine,
-            schedule_id: idSchedule
-        })
-    },
-
-    getLineAtBusstop: function(nrLine, idSchedule, idBusstop) {
-        this.sendPostRequest({
-            method: "lineAtBusstop",
-            schedule_id: idSchedule,
-            line_no: nrLine,
-            busstop_no: idBusstop,
-        })
-    },
-
-    getSchedules: function() {
-        this.sendPostRequest({
-            method: "schedules"
-        })
-    },
-
-    sendPostRequest: function(params) {
-
-        return new Promise((resolve, reject) => {
-            let data = {
-                auth: auth
-            };
-
-            Utils.copyPropsToAnotherObject(params, data);
-
-            axios({
-                method: 'post',
-                url: url,
-                data: data,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(
-                (data) => {
-                    console.log(data);
+    getResponse: function(promises) {
+        axios.all(promises)
+            .then((responses) => {
+                    return responses.map(response => {
+                        return {
+                            key:JSON.parse(response.config.data).method,
+                            data:response.data.response
+                        }
+                    });
                 }
             )
-                .catch((error) => {
-                    console.log(error);
-                });
-        });
+            .then( (responseData) =>{
+                    DataHandler.handleData(responseData);
+                }
+            )
+            .catch((error) => {
+                console.log(error);
+            });
     },
 
-    handleResponse: function() {
-        return responseData;
-    }
 };

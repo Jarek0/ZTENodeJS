@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Network = require('./objects/Network');
+const AlgorithmManager = require('./objects/AlgorithmStarter');
 
-function getDataFromZTMAndSaveItToSVC(){
-    console.log(Network.getBusstops());
-}
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  getDataFromZTMAndSaveItToSVC();
+    AlgorithmManager.getDataFromZTMAndSaveItToSVC();
   res.render('index', { title: 'zteApplication'});
 });
 
