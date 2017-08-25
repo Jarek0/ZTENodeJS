@@ -1,17 +1,19 @@
 const axios = require('axios');
 const Utils = require('./Utils');
 const Auth = require('./Auth');
-const AlgorithmManager = require('./AlgorithmStarter');
+const AlgorithmStarter = require('./AlgorithmStarter');
 const DataHandler = require('./DataHandler');
 
 let url = 'https://www.ztm.lublin.eu/api/query';
 
 let auth = Auth.getAuth();
 
+let dataFromZTE;
+
 module.exports = {
     getDataFromZTE(requestObjectWrapperFunctions){
         let promises = this.createPromises(requestObjectWrapperFunctions);
-        this.getResponse(promises);
+        this.getLinesAndSchedulesResponse(promises);
     },
 
     createPromises: function(requestParams){
@@ -33,24 +35,60 @@ module.exports = {
         )
     },
 
-    getResponse: function(promises) {
-        axios.all(promises)
+    sendRequest(promises){
+        return axios.all(promises)
             .then((responses) => {
                     return responses.map(response => {
                         return {
-                            key:JSON.parse(response.config.data).method,
+                            method:JSON.parse(response.config.data).method,
                             data:response.data.response
                         }
                     });
                 }
             )
-            .then( (responseData) =>{
-                    DataHandler.handleData(responseData);
-                }
-            )
+    },
+
+
+    getLinesAndSchedulesResponse: function(promises) {
+        this.sendRequest(promises).then( (responseData) =>{
+                this.handleLinesAndSchedulesResponse(responseData);
+            }
+        )
             .catch((error) => {
                 console.log(error);
             });
     },
+
+    handleLinesAndSchedulesResponse: function(responseData){
+        let lines = responseData.find(obj => {return obj.method === 'lines'}).data;
+        let schedules = responseData.find(obj => {return obj.method === 'schedules'}).data;
+
+        for(let line in lines)
+            schedules.forEach(
+                schedule => {
+                    this.getDataFromZTE(
+                        AlgorithmStarter.getLineRequestData(
+                            line.key,
+                            schedule.id
+                        ),
+                        this.getLineResponse
+                    )
+                }
+            )
+    },
+
+    getLineResponse: function(promises){
+        this.sendRequest(promises).then( (responseData) =>{
+                this.handleLineResponse(responseData);
+            }
+        )
+            .catch((error) => {
+                console.log(error);
+            });
+    },
+
+    handleLineResponse: function(responseData){
+        console.log(responseData);
+    }
 
 };

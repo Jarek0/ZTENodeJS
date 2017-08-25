@@ -42,8 +42,10 @@ module.exports = {
 
     getDataFromZTMAndSaveItToSVC: function(){
         Network.getDataFromZTE(
-            [this.getBusstopsRequestData(),
-            this.getLinesRequestData()]
+            [
+            this.getSchedulesRequestData(),
+            this.getLinesRequestData()
+            ]
         )
     }
 };
