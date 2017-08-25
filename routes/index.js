@@ -41,8 +41,12 @@ function getDataFromZTMAndSaveItToSVC(){
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    getDataFromZTMAndSaveItToSVC();
     res.render('index', { title: 'zteApplication'});
+});
+
+router.get('/getData', function(req, res, next) {
+    res.render('index', { title: 'zteApplication'});
+    getDataFromZTMAndSaveItToSVC();
 });
 
 module.exports = router;
