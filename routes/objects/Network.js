@@ -3,6 +3,7 @@ const Utils = require('./Utils');
 const Auth = require('./Auth');
 const AlgorithmStarter = require('./AlgorithmStarter');
 const DataHandler = require('./DataHandler');
+const RequestDataGetter = require('./RequestDataGetter');
 
 let url = 'https://www.ztm.lublin.eu/api/query';
 
@@ -67,7 +68,7 @@ module.exports = {
             schedules.forEach(
                 schedule => {
                     this.getDataFromZTE(
-                        AlgorithmStarter.getLineRequestData(
+                        RequestDataGetter.getLineRequestData(
                             line.key,
                             schedule.id
                         ),
