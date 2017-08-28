@@ -6,7 +6,8 @@ module.exports = {
         Network.getDataFromZTE(
             [
                 RequestDataGetter.getSchedulesRequestData(),
-                RequestDataGetter.getLinesRequestData()
+                RequestDataGetter.getLinesRequestData(),
+                RequestDataGetter.getBusstopsRequestData()
             ]
         )
     }

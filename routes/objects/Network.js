@@ -10,11 +10,13 @@ let url = 'https://www.ztm.lublin.eu/api/query';
 let auth = Auth.getAuth();
 
 let dataFromZTE;
+let busStops;
+let busStopsOnLine = {};
 
 module.exports = {
-    getDataFromZTE(requestObjectWrapperFunctions){
-        let promises = this.createPromises(requestObjectWrapperFunctions);
-        this.getLinesAndSchedulesResponse(promises);
+    getDataFromZTE(requestParamsWrapper){
+        let promises = this.createPromises(requestParamsWrapper);
+        this.getLinesSchedulesAndBusStopsResponse(promises);
     },
 
     createPromises: function(requestParams){
@@ -36,7 +38,7 @@ module.exports = {
         )
     },
 
-    sendRequest(promises){
+    sendLinesSchedulesAndBusStopsRequest: function(promises){
         return axios.all(promises)
             .then((responses) => {
                     return responses.map(response => {
@@ -50,9 +52,9 @@ module.exports = {
     },
 
 
-    getLinesAndSchedulesResponse: function(promises) {
-        this.sendRequest(promises).then( (responseData) =>{
-                this.handleLinesAndSchedulesResponse(responseData);
+    getLinesSchedulesAndBusStopsResponse: function(promises) {
+        this.sendLinesSchedulesAndBusStopsRequest(promises).then( (responseData) =>{
+                this.handleLinesSchedulesAndBusesResponse(responseData);
             }
         )
             .catch((error) => {
@@ -60,26 +62,31 @@ module.exports = {
             });
     },
 
-    handleLinesAndSchedulesResponse: function(responseData){
+    handleLinesSchedulesAndBusesResponse: function(responseData){
         let lines = responseData.find(obj => {return obj.method === 'lines'}).data;
         let schedules = responseData.find(obj => {return obj.method === 'schedules'}).data;
+        busStops = responseData.find(obj => {return obj.method === 'busstops'}).data;
+
+        let lineRequestData = [];
 
         for(let line in lines)
             schedules.forEach(
                 schedule => {
-                    this.getDataFromZTE(
-                        RequestDataGetter.getLineRequestData(
-                            line.key,
-                            schedule.id
-                        ),
-                        this.getLineResponse
-                    )
+                    lineRequestData.push(RequestDataGetter.getLineRequestData(
+                            line,
+                            schedule.id));
+
                 }
             )
+        let linePromises=this.createPromises(lineRequestData);
+        console.log(linePromises.length);
+        console.log(busStops.length);
+        this.getLineResponse(linePromises);
     },
 
+
     getLineResponse: function(promises){
-        this.sendRequest(promises).then( (responseData) =>{
+        this.sendLineRequest(promises).then( (responseData) =>{
                 this.handleLineResponse(responseData);
             }
         )
@@ -88,8 +95,95 @@ module.exports = {
             });
     },
 
-    handleLineResponse: function(responseData){
-        console.log(responseData);
-    }
+    sendLineRequest: function(promises){
+        return axios.all(promises)
+            .then((responses) => {
+                    return responses.map(response => {
+                        return {
+                            line_no:JSON.parse(response.config.data).line_no,
+                            schedule_id:JSON.parse(response.config.data).schedule_id,
+                            data:response.data.response
+                        }
+                    });
+                }
+            )
+    },
 
+    handleLineResponse: function(lineResponses){
+        busStopsOnLine = [];
+
+        let lineAtBusstopRequestData = [];
+
+        lineResponses.forEach(
+            lineResponse =>{
+                if(lineResponse.data!==undefined)
+                lineResponse.data.forEach(
+                    lineResponseData => {
+                        lineResponseData.data.forEach(
+                            busStopData => {
+                                let busStopOnLine = {};
+                                busStopOnLine.line_no = lineResponse.line_no;
+                                busStopOnLine.schedule_id = lineResponse.schedule_id;
+                                busStopOnLine.direction_name = lineResponseData.direction_name;
+                                busStopOnLine.id = busStopData.busstop;
+                                busStopOnLine.position = busStopData.position-1;
+                                
+                                let busStop = busStops.find(busStop => {return busStop.id === busStopOnLine.id});
+                                busStopOnLine.latitude = busStop.latitude;
+                                busStopOnLine.longitude = busStop.longitude;
+
+                                lineAtBusstopRequestData.push(
+                                    RequestDataGetter.getLineAtBusstopRequestData(
+                                        busStopOnLine.line_no,
+                                        busStopOnLine.schedule_id,
+                                        busStopOnLine.id
+                                    )
+                                );
+
+
+
+                                busStopsOnLine.push(busStopOnLine);
+                            }
+                        )
+                    }
+                );
+            }
+        );
+
+        let lineAtBusStopPromises=this.createPromises(lineAtBusstopRequestData.slice(1, 100));
+
+        this.getLineAtBusStopResponse(lineAtBusStopPromises);
+    },
+
+    getLineAtBusStopResponse: function(lineAtBusStopPromises){
+        this.sendLineAtBusStopRequest(lineAtBusStopPromises).then( (responseData) =>{
+                this.handleLineAtBusStopResponse(responseData);
+            }
+        )
+            .catch((error) => {
+                console.log(error);
+            });
+    },
+
+    sendLineAtBusStopRequest: function(promises){
+        return axios.all(promises)
+            .then((responses) => {
+                    return responses.map(response => {
+                        return {
+                            line_no:JSON.parse(response.config.data).line_no,
+                            schedule_id:JSON.parse(response.config.data).schedule_id,
+                            busstop_no:JSON.parse(response.config.data).busstop_no,
+                            data:response.data.response
+                        }
+                    });
+                }
+            )
+    },
+
+
+    handleLineAtBusStopResponse(lineAtBusStopResponses){
+        console.log(busStops);
+        console.log(busStopsOnLine)
+        console.log(lineAtBusStopResponses);
+    }
 };
