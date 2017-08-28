@@ -1,7 +1,6 @@
 const md5 = require('md5');
 const axios = require('axios');
 const sha1 = require('sha1');
-
 const express = require('express');
 const router = express.Router();
 
@@ -50,3 +49,4 @@ router.get('/getData', function(req, res, next) {
 });
 
 module.exports = router;
+
