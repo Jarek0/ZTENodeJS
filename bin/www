@@ -5,7 +5,8 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('ztmnodejs:server');
+var debug = require('debug')('ztenodejs:server');
+
 var http = require('http');
 
 /**

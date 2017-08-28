@@ -21,8 +21,9 @@ function prepare(query) {
     row = 'numer linii:'+query[0][0]+';kierunek:'+query[0][1]+'\n';
     rows.push(row);
     row = 'Numer przystanku;Czas potrzebny na dojazd;';
-    //pętla z ilością odjazdów. w każdej dodawany średnik- przeskok do następnej komórki
-    for(var j = 1;j<Object.keys(query[1]).length-1;j++){
+    //pętla z ilością odjazdów. i=1 poneważ na 1 msc w rzędzie jest numer przystanku
+    //w każdej dodawany średnik- przeskok do następnej komórki
+    for(var i = 1;i<Object.keys(query[1]).length-1;i++){
         row+=';';
     }
     row +='Przystanek; Wspolrzedna x; Wspolrzedna y';

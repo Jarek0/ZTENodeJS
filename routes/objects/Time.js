@@ -30,19 +30,23 @@ function substractTime(leavesArray,lineNumber,direction){
         }
         //pobranie wspolrzednych przystanku
         let directionName = leavesArray[i][leavesArray[i].length-1];
-        ride[i][j] = [directionName,/*,coordnateX,coordnateY*/];
+        ride[i].push([directionName,stopsArray[i].coordnateX,stopsArray[i].coordnateY]);
     }
     return ride;
 }
 function controller() {
-    let leavesArray = findTime();
-    let differences = substractTime(leavesArray, 47, leavesArray[leavesArray.length-1][leavesArray[0].length-1]);
-    let line = prepare(differences);
+    let line=[];
+    //dostosować dla wielu linii
+    for(let i = 0;i<lines.length;i++) {
+        let leavesArray = findTime();
+
+        let differences = substractTime(leavesArray, lines[i], leavesArray[leavesArray.length - 1][leavesArray[0].length - 1]);
+        line.push(prepare(differences));
+    }
     download(line);
 }
 
-let stopsArray=['felin spiessa','rondo przemyslowcow','rondo karszo-siedlewskiego','vetterow','felin europark',
-    'doswiadczalna'];
+let stopsArray=[/*'felin spiessa','rondo przemyslowcow','rondo karszo-siedlewskiego','vetterow','felin europark','doswiadczalna'*/];
 let timesArray={'felin spiessa':{'5':['55'],'6':['35'],'7':['15','55'],'13':['55'],
     '14':['35'],'15':['15','55'],'16':['35'],'19':['15'],'22':['20']},
     'rondo przemyslowcow':{'5':['57'],'6':['37'],'7':['17','57'],'13':['57'],
@@ -55,3 +59,10 @@ let timesArray={'felin spiessa':{'5':['55'],'6':['35'],'7':['15','55'],'13':['55
     '15':['20'],'16':['00','40'],'19':['20'],'22':['25']},
     'doswiadczalna':{'6':['02','42'],'7':['22'],'8':['02'],'14':['02','42'],
     '15':['22'],'16':['02','42'],'19':['22'],'22':['27']}};
+function changeBusStopResponse(busStopResponse){
+    //przypisać potem do stopsArray
+    for(let i = 0;i<busStopResponse.length;i++){
+        stopsArray.push({id:busStopResponse.id,coordinateX:busStopResponse.longitude, coordinateY:busStopResponse.latitude});
+    }
+    return stopsArray;
+}
