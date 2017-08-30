@@ -2,26 +2,21 @@ let Export= require('./ExportToCSV');
 function findTime(stopsArray) {
     if (stopsArray[0]) {
         let leavesArray = [];
-        console.log(stopsArray[0].direction_name);
         let keys = Object.keys(stopsArray[0].godziny);
         let i = loops(keys, stopsArray);
         for (let j = 0; j < stopsArray.length; j++) {
             keys = Object.keys(stopsArray[j].godziny);
             leavesArray.push(findingLoops(stopsArray[j], keys, i));
         }
-        //console.log(leavesArray);
         return leavesArray;
     }
 }
 function findingLoops(stopsArray, keys, i) {
     let z = 0;
-    console.log(stopsArray.godziny);
     for(let x = 0;x<keys.length;x++){
         let minutes = stopsArray.godziny[keys[x]];
         for(let w = 0; w<minutes.length;w++){
             if(i===z){
-                console.log(keys[x],minutes[w]);
-                console.log(minutes);
                 return {linia : stopsArray.linia, dir:stopsArray.direction_name, busstopId: stopsArray.przystanek, pos:stopsArray.position, leaveTime: minutes[w]};
             }
             z++;
@@ -42,17 +37,13 @@ function loops(keys, stopsArray){
 }
 function substractTime(leavesArray, busstopResponse){
     let ride = [];
-    //ride[0] = [lineNumber,direction];
-    //console.log(leavesArray);
-    //console.log(busstopResponse);
     for(let i = 1; i<leavesArray.length; i++){
         ride[i-1]={};
-                let result = leavesArray[i].leaveTime - leavesArray[i - 1].leaveTime;
+                let first=leavesArray[i].leaveTime.charAt(0)+leavesArray[i].leaveTime.charAt(1);
+                let second=leavesArray[i - 1].leaveTime.charAt(0)+leavesArray[i - 1].leaveTime.charAt(1);
+                   let result = first - second;
                 if (result < 0)
                     result += 60;
-                //console.log(result);
-                /*console.log(leavesArray[i][leavesArray[i].length-1].line);
-                console.log(leavesArray[i][leavesArray[i].length-1].dir);*/
         //pobranie wspolrzednych przystanku
         let directionName = leavesArray[i].dir;
         let coorX;
@@ -77,15 +68,22 @@ function changeArray(busStopArray, array) {
             rozklad[busstop.line_no][busstop.direction_name] = [];
 
     });
-    busStopArray.forEach(
-        (busstopOnLine) => {
+    let dir;
+    let pos;
+    for(let i = 0; i<busStopArray.length;i++){
             let element = array.find((busstop) => {
-                return (busstopOnLine.line_no === busstop.line_no && busstop.busstop_no === busstopOnLine.id);
+                return (busStopArray[i].line_no === busstop.line_no && busstop.busstop_no === busStopArray[i].id);
             });
+            dir = busStopArray[i].direction_name;
+            pos=busStopArray[i].position;
             if (element !== undefined&&element.data!== undefined)
             {
-                element.data.direction_name=busstopOnLine.direction_name;
-                element.data.position=busstopOnLine.position;
+                console.log(busStopArray[i]);
+                console.log(element);
+                if(!element.data.direction_name) {
+                    element.data.direction_name = dir;
+                    element.data.position = pos;
+                }
                 let hours;
                 if(element.data.godziny['DZIEŃ POWSZEDNI, ROK SZKOLNY']){
                     hours = element.data.godziny['DZIEŃ POWSZEDNI, ROK SZKOLNY'];
@@ -101,7 +99,6 @@ function changeArray(busStopArray, array) {
                 rozklad[element.line_no][element.data.direction_name].push(element.data);
             }
         }
-    );
     return rozklad;
 }
 module.exports={
@@ -112,13 +109,10 @@ module.exports={
         lineAtBusStopResponse = changeArray(busStopResponse,lineAtBusStopResponse);
         let keys = Object.keys(lineAtBusStopResponse);
         for(let i = 0;i<keys.length;i++) {
+            //console.log(lineAtBusStopResponse[keys[i]]);
             let klucze = Object.keys(lineAtBusStopResponse[keys[i]]);
             for (let j = 0; j <klucze.length; j++) {
                 leavesArray = findTime(lineAtBusStopResponse[keys[i]][klucze[j]]);
-                /*console.log(leavesArray.length);
-                console.log(leavesArray[0].dir);
-                console.log(leavesArray[0].linia);*/
-
                 if (leavesArray) {
                      differences.push(substractTime(leavesArray, busStopResponse));
                 }
