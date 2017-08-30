@@ -1,46 +1,46 @@
 function createRow(feature) {
     var row = '';
     //dla każdego przejazdu
-    for(var i = 0;i<Object.keys(feature).length;i++) {
-        row += feature[i];
-        //jeżeli i przyjmuje przedostatnią wartość(parametry przystanku) to wyciągnij je i dodaj do rzędu
-            if(i==feature.size-1){
-                for(var j=0;j<feature[i].length;j++){
-                    row += feature[i][j]+';';
-                }
-            }
+    let keys =Object.keys(feature);
+    for(var i = 0;i<keys.length;i++) {
+        row += feature[keys[i]];
         row += ';';
     }
     row += '\n';
     return row;
 }
-function prepare(query) {
+module.exports={
+prepare: function(query) {
     var rows = [];
     var row;
     //stworzenie nagłówków
-    row = 'numer linii:'+query[0][0]+';kierunek:'+query[0][1]+'\n';
-    rows.push(row);
-    row = 'Numer przystanku;Czas potrzebny na dojazd;';
-    //pętla z ilością odjazdów. i=1 poneważ na 1 msc w rzędzie jest numer przystanku
-    //w każdej dodawany średnik- przeskok do następnej komórki
-    for(var i = 1;i<Object.keys(query[1]).length-1;i++){
-        row+=';';
-    }
-    row +='Przystanek; Wspolrzedna x; Wspolrzedna y';
-    row += '\n';
+    row = 'Id Przystanku;Kierunek;Czas potrzebny na dojazd;Wspolrzedna x;Wspolrzedna y;Numer przystanku;Numer linii'+'\n';
     rows.push(row);
     //dla każdego przystanku tworzy się wiersz pliku csv
-    for(var i = 1;i<query.length;i++){
+    for(var i = 0;i<query.length;i++){
+        for(let j=0;j<query[i].length;j++){
+            row+=createRow(query[i][j]);
+        }
+
         //wprowadzenie numeru przystanku
-        row=''+i+';';
-        row+=createRow(query[i]);
+
         //dodanie rzędu do tablicy rzędów
-        rows.push(row);
+        rows=(row);
     }
     return rows;
-}
-function download(query) {
-    var filename ='autobusy.csv';
+},
+download: function(query) {
+    var filename = 'autobusy.csv';
+
+    var fs = require('fs');
+
+    fs.writeFile('form-tracking/formList.csv', query, 'utf8', function (err) {
+        if (err) {
+            console.log('Some error occured - file either not saved or corrupted file saved.');
+        } else{
+            console.log('It\'s saved!');
+        }
+    });
     var blob = new Blob([query], {type: 'text/csv;charset=utf-8;'});
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, filename);
@@ -56,6 +56,7 @@ function download(query) {
             link.click();
             document.body.removeChild(link);
         }
+    }
     }
 }
 
