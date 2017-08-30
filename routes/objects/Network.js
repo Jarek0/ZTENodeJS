@@ -1,6 +1,7 @@
 const axios = require('axios');
 const Utils = require('./Utils');
 const Auth = require('./Auth');
+const Time = require('./Time');
 const AlgorithmStarter = require('./AlgorithmStarter');
 const DataHandler = require('./DataHandler');
 const RequestDataGetter = require('./RequestDataGetter');
@@ -66,7 +67,11 @@ module.exports = {
         let lines = responseData.find(obj => {return obj.method === 'lines'}).data;
         let schedules = responseData.find(obj => {return obj.method === 'schedules'}).data;
         busStops = responseData.find(obj => {return obj.method === 'busstops'}).data;
-
+        if(schedules.length===2) {
+            let handleSchedules = (schedules[0].date_start < schedules[1].date_start) ? schedules[0] : schedules[1];
+            schedules = [];
+            schedules.push(handleSchedules);
+        }
         let lineRequestData = [];
 
         for(let line in lines)
@@ -182,8 +187,9 @@ module.exports = {
 
 
     handleLineAtBusStopResponse(lineAtBusStopResponses){
-        console.log(busStops);
-        console.log(busStopsOnLine)
-        console.log(lineAtBusStopResponses);
+        //console.log(busStops);
+        //console.log(busStopsOnLine);
+        //console.log(lineAtBusStopResponses);
+        Time.controller(busStopsOnLine,lineAtBusStopResponses);
     }
 };
