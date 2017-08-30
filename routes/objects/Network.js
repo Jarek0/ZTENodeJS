@@ -68,7 +68,7 @@ module.exports = {
         let schedules = responseData.find(obj => {return obj.method === 'schedules'}).data;
         busStops = responseData.find(obj => {return obj.method === 'busstops'}).data;
         if(schedules.length===2) {
-            let handleSchedules = (schedules[0].date_start > schedules[1].date_start) ? schedules[0] : schedules[1];
+            let handleSchedules = (schedules[0].date_start < schedules[1].date_start) ? schedules[0] : schedules[1];
             schedules = [];
             schedules.push(handleSchedules);
         }
