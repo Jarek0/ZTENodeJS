@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AlgorithmManager = require('./objects/AlgorithmStarter');
+const AlgorithmManager = require('./objects/AlgorithmMaster');
 
 
 /* GET home page. */

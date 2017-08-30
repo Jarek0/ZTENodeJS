@@ -1,7 +1,7 @@
 const axios = require('axios');
 const Utils = require('./Utils');
 const Auth = require('./Auth');
-const AlgorithmStarter = require('./AlgorithmStarter');
+const AlgorithmStarter = require('./AlgorithmMaster');
 const DataHandler = require('./DataHandler');
 const RequestDataGetter = require('./RequestDataGetter');
 
